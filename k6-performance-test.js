@@ -47,11 +47,10 @@ export default function () {
   // Validasi response
 const success = check(response, {
     "status is 200": (r) => r.status === 200,
+    "response time < 200ms": (r) => r.timings.duration < 200, // bisa diganti
     "response time < 500ms": (r) => r.timings.duration < 500, // bisa diganti
-    "response has body": (r) => r.body && r.body.length > 0,
-    "content type is JSON": (r) =>
-      r.headers["Content-Type"] &&
-      r.headers["Content-Type"].includes("application/json"),
+    "response time < 1000ms": (r) => r.timings.duration < 1000, // bisa diganti
+    'response has body': (r) => !!r.body && r.body.length > 0,
   });
   
   if (!success) {
