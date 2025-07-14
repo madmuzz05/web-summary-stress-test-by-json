@@ -1,20 +1,17 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
 
-const apiName = "travel-get-travel-monitoring";
-const environment = "Development";
-const baseUrl = "https://api-pismart-dev.pupuk-indonesia.com/golang/api/v1/";
-const token = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMjQ3IiwiZXhwIjoyMDQxNDgyNjE3fQ.G89bntYqExi9YShORwUT03SKQEpJadle8tDEV0RNH7SVLVBzRpHiOc-xO55XxFg1hMKjZgmOtFsp-n26gMRdAA";
-const api_url = baseUrl + "travel/get-travel-monitoring";
+const apiName = "your-api-name";
+const environment = "your-environment";
+const baseUrl = "your-base-url";
+const token = "your-token";
+const api_url = baseUrl + "your-api-endpoint";
 const method = "POST"; // POST atau GET
 const maxResponseTime = 500;
 const maxErrorRate = 0.1;
 
 // Request payload
-const payload = JSON.stringify({
-  "company": "B000",
-  "status_settlement": "ToBeSettle"
-});
+const payload = JSON.stringify({});
 
 // Konfigurasi test scenarios
 export const options = {
