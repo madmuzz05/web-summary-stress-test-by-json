@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>K6 Performance Test - Summary Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f6f9; }
+    h1 { color: #2c3e50; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #ecf0f1; }
+    .hidden { display: none; }
+    input[type="file"] { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 K6 Performance Test - Summary Viewer</h1>
+  <input type="file" id="jsonInput" accept=".json"/>
+  <div id="report" class="hidden">
+    <table>
+      <tr>
+        <th>Environment</th>
+        <td id="environment"></td>
+      </tr>
+      <tr>
+        <th>API Name</th>
+        <td id="apiName"></td>
+      </tr>
+      <tr>
+        <th>API URL</th>
+        <td id="apiUrl"></td>
+      </tr>
+      <tr>
+        <th>Method</th>
+        <td id="method"></td>
+      </tr>
+      <tr>
+        <th>Payload</th>
+        <td id="payload"></td>
+      </tr>
+    </table>
+
+    <h2>Overview</h2>
+    <table id="overview"></table>
+
+    <h2>HTTP Duration (ms)</h2>
+    <table id="duration"></table>
+
+    <h2>Check Results</h2>
+    <table id="checks">
+      <tr><th>Check</th><th>Passes</th><th>Fails</th></tr>
+    </table>
+  </div>
+
+  <script>
+    document.getElementById("jsonInput").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const data = JSON.parse(event.target.result);
+
+        const metrics = data.metrics;
+        const checks = data.root_group.checks;
+
+        const formatBytes = (bytes) => (bytes / (1024 * 1024)).toFixed(2) + " MB";
+
+        // Fill API Name
+        const apiName = document.getElementById("apiName");
+        apiName.innerHTML = data.api_name;
+
+        // Fill Environment
+        const environment = document.getElementById("environment");
+        environment.innerHTML = data.environment;
+
+        // Fill API URL
+        const apiUrl = document.getElementById("apiUrl");
+        apiUrl.innerHTML = data.api_url;
+
+        // Fill Method
+        const method = document.getElementById("method");
+        method.innerHTML = JSON.stringify(data.method);
+
+        // Fill Payload
+        const payload = document.getElementById("payload");
+        payload.innerHTML = JSON.stringify(data.payload);
+
+          // Fill Overview
+        const overview = document.getElementById("overview");
+        overview.innerHTML = `
+          <tr><th>Total Requests</th><td>${metrics.http_reqs.values.count}</td></tr>
+          <tr><th>Request Rate</th><td>${metrics.http_reqs.values.rate.toFixed(2)} req/s</td></tr>
+          <tr><th>Error Rate</th><td>${(metrics.http_req_failed.values.rate*100).toFixed(2)}%</td></tr>
+          <tr><th>Iterations</th><td>${metrics.iterations.values.count}</td></tr>
+          <tr><th>Data Received</th><td>${formatBytes(metrics.data_received.values.count)}</td></tr>
+          <tr><th>Data Sent</th><td>${formatBytes(metrics.data_sent.values.count)}</td></tr>
+          <tr><th>Test Duration</th><td>${(data.state.testRunDurationMs / 1000).toFixed(2)} sec</td></tr>
+          <tr><th>Max VUs (Virtual User)</th><td>${metrics.vus_max.values.max}</td></tr>
+        `;
+
+        // Fill Duration
+        const duration = metrics.http_req_duration.values;
+        const durationTable = document.getElementById("duration");
+        durationTable.innerHTML = `
+        <tr><th>Min</th><td>${duration.min.toFixed(2)} ms</td></tr>
+        <tr><th>Median</th><td>${duration.med.toFixed(2)} ms</td></tr>
+        <tr><th>Max</th><td>${duration.max.toFixed(2)} ms</td></tr>
+        <tr><th>Avg</th><td>${duration.avg.toFixed(2)} ms</td></tr>
+        <tr><th>90th Percentile</th><td>${duration["p(90)"].toFixed(2)} ms</td></tr>
+        <tr><th>95th Percentile</th><td>${duration["p(95)"].toFixed(2)} ms</td></tr>
+        `;
+
+        // Fill Checks
+        const checkTable = document.getElementById("checks");
+        checks.forEach(check => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${check.name}</td><td>${check.passes}</td><td>${check.fails}</td>`;
+          checkTable.appendChild(row);
+        });
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>Error Count</td><td>${metrics.http_req_failed.values.fails}</td><td>${metrics.http_req_failed.values.passes}</td>`;
+        checkTable.appendChild(row);
+
+        document.getElementById("report").classList.remove("hidden");
+      };
+      reader.readAsText(file);
+    });
+  </script>
+
+</body>
+</html>
