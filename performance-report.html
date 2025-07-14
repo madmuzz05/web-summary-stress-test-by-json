@@ -116,7 +116,7 @@
         const checkTable = document.getElementById("checks");
         checkTable.innerHTML = "";
         const headerRow = document.createElement("tr");
-        headerRow.innerHTML = `<td>Check</td><td>Passes</td><td>Fails</td>`;
+        headerRow.innerHTML = `<th>Check</th><th>Passes</th><th>Fails</th>`;
         checkTable.appendChild(headerRow);
         checks.forEach(check => {
           const row = document.createElement("tr");
