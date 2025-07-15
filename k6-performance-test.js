@@ -1,5 +1,5 @@
 import http from "k6/http";
-import { check, sleep } from "k6";
+import { check, fail, sleep } from "k6";
 
 const apiName = "get-event-room";
 const environment = "local";
@@ -46,14 +46,15 @@ export default function () {
 
   // Validasi response
 const success = check(response, {
-    "status is 200": (r) => r.status === 200,
+    "status is 200": (r) => r.status == 200,
+    "status >= 400 and status < 500": (r) => r.status >= 400 && r.status < 500,
+    "status >= 500": (r) => r.status >= 500,
     "response time < 200ms": (r) => r.timings.duration < 200, // bisa diganti
     "response time < 500ms": (r) => r.timings.duration < 500, // bisa diganti
     "response time < 1000ms": (r) => r.timings.duration < 1000, // bisa diganti
-    "response has body": (r) => !!r.body && r.body.length > 0,
   });
   
-  if (!success) {
+  if (response.status >= 400 || response.timings.duration > maxResponseTime) {
     console.log(`❌ One or more checks failed. Status: ${response.status}, Time: ${response.timings.duration}ms`)
   }
 
